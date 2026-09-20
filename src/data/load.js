@@ -6,6 +6,8 @@ const REF = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,120}$/;
 const MAX_BYTES = 4 * 1024 * 1024;
 
 export class BadSource extends Error {}
+/** The ref exists on GitHub but has no structure file, as branches older than the description do */
+export class NoStructure extends Error {}
 
 /** A branch, tag or commit of the configured repository */
 export function parseRef(value) {
@@ -44,6 +46,7 @@ export function blobUrl(source, path) {
 
 async function fetchJson(url) {
   const response = await fetch(url, { credentials: 'omit', redirect: 'error', cache: 'no-cache' });
+  if (response.status === 404) throw new NoStructure('There is no structure file there.');
   if (!response.ok) throw new Error(`${response.status} from ${url}`);
   const body = await response.text();
   if (body.length > MAX_BYTES) throw new Error('The structure file is too large.');

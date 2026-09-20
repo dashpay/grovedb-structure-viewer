@@ -1,4 +1,4 @@
-import { loadConfig, loadStructure, loadLocal, parseSource, parseRef, BadSource } from './data/load.js';
+import { loadConfig, loadStructure, loadLocal, parseSource, parseRef, BadSource, NoStructure } from './data/load.js';
 import { InvalidStructure } from './data/validate.js';
 import { buildModel, ancestry, holdsLayer, existsIn, title, layerOf } from './data/model.js';
 import { diffStructures } from './data/diff.js';
@@ -250,7 +250,9 @@ async function start() {
     head = await loadSide(headParam, config);
     if (baseParam) base = await loadSide(baseParam, config);
   } catch (error) {
-    if (error instanceof BadSource || error instanceof InvalidStructure || baseParam) {
+    if (error instanceof NoStructure && !baseParam) {
+      showNotice(`${headParam} has no grovedb-structure.json yet. Showing the snapshot bundled with the viewer.`);
+    } else if (error instanceof BadSource || error instanceof InvalidStructure || baseParam) {
       showNotice(`Could not show ${baseParam ? 'that comparison' : 'that ref'}: ${error.message} Showing the bundled snapshot instead.`, { error: true });
     } else {
       showNotice('Could not reach GitHub. Showing the snapshot bundled with the viewer.');
