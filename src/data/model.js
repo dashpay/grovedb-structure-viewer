@@ -14,6 +14,30 @@ export function buildModel(doc) {
   return { doc, root: doc.root, byId, parentOf, kinds, flagKinds, shapes: doc.layer_shapes, latest: doc.latest_protocol_version };
 }
 
+/**
+ * Where a layer's recorded Merk shape comes from, in words. A layer reached
+ * through fixed keys only is recorded from a fresh chain; a layer below a
+ * template exists once per identity, contract and so on, and is recorded from
+ * one instance built by a test fixture.
+ */
+export function shapeOrigin(shape) {
+  const genesis = /^genesis@(\d+)$/.exec(shape.origin);
+  if (genesis) {
+    return {
+      short: `fresh chain, protocol version ${genesis[1]}`,
+      long: `Recorded from a real GroveDB: a fresh chain at protocol version ${genesis[1]}. A chain that upgraded through earlier versions inserted the same keys in another order, so its shape can differ.`,
+    };
+  }
+  const fixture = /^fixture ([a-z0-9_]+)@(\d+)$/.exec(shape.origin);
+  if (fixture) {
+    return {
+      short: `one instance, from the test fixture ${fixture[1]}`,
+      long: `This layer exists once per key above it. The shape is recorded from one instance in a real GroveDB: the fullest one the test fixture ${fixture[1]} builds, at protocol version ${fixture[2]}. Another instance can differ when it holds fewer keys or got them in another order.`,
+    };
+  }
+  return { short: shape.origin, long: `Recorded from a real GroveDB: ${shape.origin}.` };
+}
+
 export function existsIn(node, pv) {
   return node.since <= pv && (node.until === undefined || pv <= node.until);
 }

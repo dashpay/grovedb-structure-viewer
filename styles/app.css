@@ -145,7 +145,8 @@ kbd {
 .layer-head h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .layer-head .key { font: 13px var(--mono); color: var(--text-2); background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; border-radius: 7px; }
 .layer-head p { grid-column: 1; margin: 0; color: var(--text-2); max-width: 78ch; }
-.layer-head .tools { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 8px; align-items: center; }
+.layer-head .origin { color: var(--text-3); font-size: 12.500px; }
+.layer-head .tools { grid-row: 1 / span 3; grid-column: 2; display: flex; gap: 8px; align-items: center; }
 .layer-head .swap { animation: head-in .4s var(--ease) both; }
 @keyframes head-in { from { opacity: 0; transform: translateY(6px); } }
 

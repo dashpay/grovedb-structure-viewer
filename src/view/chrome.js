@@ -1,5 +1,5 @@
 import { el, icon, clear } from './dom.js';
-import { ancestry, keyBadge, title, childrenOf, holdsLayer, milestones, search, existsIn } from '../data/model.js';
+import { ancestry, keyBadge, title, childrenOf, holdsLayer, milestones, search, existsIn, shapeOrigin } from '../data/model.js';
 import { familyClass, kindLabel } from './kinds.js';
 
 const $ = (id) => document.getElementById(id);
@@ -73,6 +73,7 @@ export function renderRail({ model, current, onGo }) {
 }
 
 export function renderLayerHead({ model, current, pv, mode, hasShape, canShape, onMode }) {
+  const shape = model.shapes[current.id];
   const head = clear($('layer-head'));
   const isRoot = current.key.type === 'root';
   const count = childrenOf(model, current, pv).length;
@@ -80,6 +81,7 @@ export function renderLayerHead({ model, current, pv, mode, hasShape, canShape, 
     el('h1', { class: 'swap' }, el('span', { text: isRoot ? 'Root layer' : title(current) }), !isRoot && el('span', { class: 'key', text: keyBadge(current) }),
       el('span', { class: 'key', text: `${count} ${count === 1 ? 'key' : 'keys'}` })),
     el('p', { class: 'swap', text: isRoot ? 'The top of Drive\'s GroveDB. Each root tree is a Merk of its own; open one to go a layer down.' : current.description }),
+    mode === 'merk' && shape && el('p', { class: 'swap origin', text: `Merk tree of ${shapeOrigin(shape).short}.` }),
     el('div', { class: 'tools' },
       hasShape && el('div', { class: 'segmented', role: 'group', 'aria-label': 'How the layer is drawn' },
         el('button', { type: 'button', 'aria-pressed': String(mode === 'grid'), on: { click: () => onMode('grid') } }, el('span', { text: 'Keys' })),

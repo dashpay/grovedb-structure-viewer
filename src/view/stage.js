@@ -49,7 +49,7 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
     });
     layer.prepend(group);
     if (layout.leftover.length > 0) {
-      const note = el('div', { class: 'layer-note', text: 'Not in the recorded shape: created after genesis' });
+      const note = el('div', { class: 'layer-note', text: 'Not in the recorded shape: created later, or not in the recorded instance' });
       note.style.left = `${layout.left}px`;
       note.style.top = `${layout.leftoverTop}px`;
       layer.append(note);

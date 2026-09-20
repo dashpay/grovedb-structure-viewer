@@ -1,5 +1,5 @@
 import { el, icon, clear, copyText } from './dom.js';
-import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, flagsOf, FLAG_NAMES } from '../data/model.js';
+import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, flagsOf, shapeOrigin, FLAG_NAMES } from '../data/model.js';
 import { blobUrl } from '../data/load.js';
 import { familyClass, familyIcon, kindLabel, family, FAMILY_NAMES } from './kinds.js';
 
@@ -122,10 +122,10 @@ export function renderInspector(panel, node, ctx) {
     ].filter(Boolean);
     if (links.length > 0) body.append(field('Defined in', el('div', { class: 'actions' }, ...links)));
   } else {
-    const shape = model.shapes.root;
-    body.append(field('How to read this', el('span', { class: 'note', text: 'Solid cards are fixed keys. A stack of cards is a template standing for many keys, such as one per identity. A dashed card is created on first use or deleted later. A small flag marks elements that carry storage flags: who paid for the bytes and in which epoch, which is what refunds are computed from. Switch to Merk tree to see the real binary tree of a layer.' })));
-    if (shape) body.append(field('Recorded shape', el('span', { class: 'note', text: `From a real GroveDB: ${shape.origin}. A chain that upgraded through earlier versions can differ, since the shape depends on insertion order.` })));
   }
+
+  const shape = model.shapes[node.id];
+  if (shape) body.append(field('Merk shape of the layer below', el('span', { class: 'note', text: shapeOrigin(shape).long })));
 
   const families = [...new Set(model.doc.element_kinds.map((kind) => family(kind.name, model)))];
   body.append(el('details', { class: 'legend' }, el('summary', { text: 'Legend' }),

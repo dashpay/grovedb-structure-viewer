@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateStructure, InvalidStructure, isRepoPath } from '../src/data/validate.js';
 import { diffStructures } from '../src/data/diff.js';
-import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags, flagsOf } from '../src/data/model.js';
+import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags, flagsOf, shapeOrigin } from '../src/data/model.js';
 import { parseSource, parseRef, rawUrl, blobUrl, BadSource } from '../src/data/load.js';
 
 const snapshot = () => JSON.parse(readFileSync(new URL('../data/snapshot.json', import.meta.url), 'utf8'));
@@ -172,4 +172,12 @@ test('element flags are optional, validated, searchable and part of the diff', (
     doc.root.children[0].flags = bad;
     assert.throws(() => validateStructure(doc), InvalidStructure, JSON.stringify(bad));
   }
+});
+
+test('a shape says where it was recorded', () => {
+  assert.match(shapeOrigin({ origin: 'genesis@14' }).long, /fresh chain at protocol version 14/);
+  const instance = shapeOrigin({ origin: 'fixture contracts_with_documents@14' });
+  assert.match(instance.short, /one instance, from the test fixture contracts_with_documents/);
+  assert.match(instance.long, /exists once per key above it/);
+  assert.equal(shapeOrigin({ origin: 'something else' }).short, 'something else');
 });
