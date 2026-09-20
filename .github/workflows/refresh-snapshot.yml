@@ -1,0 +1,43 @@
+name: Refresh snapshot
+
+# data/snapshot.json is what the site shows when GitHub cannot be reached.
+# This keeps it equal to the structure of the default ref in config.json.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Fetch the structure of the default ref
+        run: |
+          repo=$(node -p "require('./config.json').repo")
+          ref=$(node -p "require('./config.json').defaultRef")
+          path=$(node -p "require('./config.json').structurePath")
+          curl --fail --silent --show-error --location \
+            "https://raw.githubusercontent.com/${repo}/${ref}/${path}" -o data/snapshot.json
+      - name: Rebuild fixtures and test
+        run: |
+          node test/make-fixtures.mjs
+          node --test
+      - name: Commit when it changed
+        run: |
+          if git diff --quiet; then
+            echo "The snapshot is current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/snapshot.json test/fixtures
+          git commit -m "chore: refresh the structure snapshot"
+          git push

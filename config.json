@@ -1,0 +1,7 @@
+{
+  "repo": "dashpay/platform",
+  "structurePath": "packages/rs-drive/grovedb-structure.json",
+  "defaultRef": "v4.2-dev",
+  "refs": ["v4.2-dev", "v4.3-dev", "master"],
+  "bookUrl": "https://dashpay.github.io/platform/"
+}

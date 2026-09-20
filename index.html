@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="The complete GroveDB structure of Dash Platform's Drive, layer by layer.">
+  <meta name="color-scheme" content="dark light">
+  <title>GroveDB structure</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/app.css">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#stage">Skip to the structure</a>
+
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#/" aria-label="GroveDB structure, back to the root">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text"><strong>GroveDB structure</strong><small>Dash Platform Drive</small></span>
+    </a>
+    <div class="source" id="source"></div>
+    <div class="topbar-actions">
+      <button class="ghost" id="open-search" type="button" aria-keyshortcuts="/"><span class="i i-search" aria-hidden="true"></span><span class="label">Search</span><kbd>/</kbd></button>
+      <button class="ghost" id="open-outline" type="button" aria-keyshortcuts="o"><span class="i i-outline" aria-hidden="true"></span><span class="label">Outline</span><kbd>o</kbd></button>
+      <button class="ghost icon-only" id="toggle-theme" type="button" aria-label="Switch between dark and light"><span class="i i-theme" aria-hidden="true"></span></button>
+    </div>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <nav class="crumbs" id="crumbs" aria-label="Path"></nav>
+
+  <main class="workspace" id="workspace">
+    <aside class="rail" id="rail" aria-label="Layers above"></aside>
+
+    <section class="stage-column" aria-label="Current layer">
+      <header class="layer-head" id="layer-head"></header>
+      <div class="stage" id="stage" tabindex="-1"></div>
+    </section>
+
+    <aside class="side" id="side" aria-label="Details">
+      <div class="tabs" id="side-tabs" role="tablist" hidden>
+        <button role="tab" type="button" id="tab-details" aria-controls="panel-details" aria-selected="true">Details</button>
+        <button role="tab" type="button" id="tab-changes" aria-controls="panel-changes" aria-selected="false">Changes</button>
+      </div>
+      <div class="panel" id="panel-details" role="tabpanel" aria-labelledby="tab-details"></div>
+      <div class="panel" id="panel-changes" role="tabpanel" aria-labelledby="tab-changes" hidden></div>
+    </aside>
+  </main>
+
+  <footer class="timeline" id="timeline" aria-label="Protocol version"></footer>
+
+  <div class="drawer" id="outline" hidden>
+    <div class="drawer-head"><strong>Outline</strong><button class="ghost icon-only" type="button" id="close-outline" aria-label="Close the outline"><span class="i i-close" aria-hidden="true"></span></button></div>
+    <div class="drawer-body" id="outline-body" role="tree" aria-label="Whole structure"></div>
+  </div>
+
+  <div class="palette" id="palette" hidden>
+    <div class="palette-box" role="dialog" aria-modal="true" aria-label="Search the structure">
+      <input id="palette-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search keys, constants, element kinds…" aria-controls="palette-results">
+      <div class="palette-results" id="palette-results" role="listbox"></div>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sr" id="live" aria-live="polite"></div>
+  <noscript><p class="noscript">This viewer needs JavaScript.</p></noscript>
+</body>
+</html>
