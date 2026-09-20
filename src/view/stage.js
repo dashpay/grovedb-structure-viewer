@@ -22,18 +22,36 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
     const recorded = mode === 'merk' ? model.shapes[node.id] : null;
     if (!recorded) return gridLayout(ids, width);
     // A layer that goes through states is drawn in the state picked in the layer head
-    const picked = layerStates(model, node)[getState().stateIndexOf(node)];
+    const states = layerStates(model, node);
+    const picked = states[getState().stateIndexOf(node)];
     const shape = picked?.shape || recorded;
     const idOfKey = new Map();
     for (const child of childrenOf(model, node)) {
       if (child.key.type === 'fixed' && ids.includes(child.id)) idOfKey.set(child.key.hex, child.id);
     }
-    return { ...merkLayout(shape.tree, idOfKey, ids, width), inState: Boolean(picked?.shape) };
+    // In a state, a key that is missing is either not written yet or already deleted
+    const groupOf = picked?.shape
+      ? (id) => {
+        const segment = id.split('.').pop();
+        const held = states.filter((state) => state.keys.includes(segment)).map((state) => state.index);
+        if (held.some((index) => index > picked.index)) return 'Not in the layer yet: written in a later state';
+        if (held.some((index) => index < picked.index)) return 'No longer in the layer: deleted on the way to this state';
+        return 'Not in the layer in any recorded state';
+      }
+      : () => 'Not in the recorded shape: created later, or not in the recorded instance';
+    return merkLayout(shape.tree, idOfKey, ids, width, groupOf);
   }
 
   function drawEdges(layer, layout, { draw }) {
     layer.querySelector('.edges')?.remove();
     layer.querySelectorAll('.layer-note').forEach((note) => note.remove());
+    // A one key tree has no edges, and still has cards left over to explain
+    for (const entry of layout.notes || []) {
+      const note = el('div', { class: 'layer-note', text: `${entry.label} (${entry.ids.length})` });
+      note.style.left = `${entry.x}px`;
+      note.style.top = `${entry.y}px`;
+      layer.append(note);
+    }
     if (layout.edges.length === 0) return;
     const group = svg('svg', { class: 'edges', 'aria-hidden': 'true' });
     layout.edges.forEach((edge, index) => {
@@ -51,12 +69,6 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
       }
     });
     layer.prepend(group);
-    if (layout.leftover.length > 0) {
-      const note = el('div', { class: 'layer-note', text: layout.inState ? 'Not in the layer in this state' : 'Not in the recorded shape: created later, or not in the recorded instance' });
-      note.style.left = `${layout.left}px`;
-      note.style.top = `${layout.leftoverTop}px`;
-      layer.append(note);
-    }
   }
 
   function buildLayer(node, mode) {
@@ -72,6 +84,7 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
       const card = createCard(child, { ...state, onActivate, onFocus });
       card.classList.toggle('compact', usedMode === 'merk');
       card.classList.toggle('selected', child.id === selectedId);
+      card.classList.toggle('absent', layout.leftover.includes(child.id));
       place(card, layout.boxes.get(child.id));
       cards.set(child.id, card);
       element.append(card);

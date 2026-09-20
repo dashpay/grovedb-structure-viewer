@@ -24,9 +24,9 @@ export function gridLayout(ids, stageWidth) {
  * The layer drawn as its Merk: the root on the left, children to the right,
  * keys ascending from top to bottom (so the upper child is the left child).
  * `idOfKey` maps a key's hex to the card showing it. Cards the shape does not
- * hold (created after genesis) are listed under it.
+ * hold are listed under it; `groupOf` names the group a left over card belongs to.
  */
-export function merkLayout(shape, idOfKey, ids, stageWidth) {
+export function merkLayout(shape, idOfKey, ids, stageWidth, groupOf) {
   const { height, gapY, pad } = MERK;
   const placed = [];
   let row = 0;
@@ -67,20 +67,27 @@ export function merkLayout(shape, idOfKey, ids, stageWidth) {
     }
   }
 
+  // Cards the shape does not hold go below it, grouped by why they are not
+  // there, each group under its own label and in rows that wrap to the stage
   const leftover = ids.filter((id) => !boxes.has(id));
+  const groups = new Map();
+  for (const id of leftover) {
+    const label = groupOf ? groupOf(id) : '';
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(id);
+  }
+  const notes = [];
   let bottom = pad + row * (height + gapY);
-  // Cards the shape does not hold go below it, in rows that wrap to the stage
-  let leftoverTop = 0;
-  if (leftover.length > 0) {
+  const perRow = Math.max(1, Math.floor((stageWidth - left - pad + 12) / (width + 12)));
+  for (const [label, members] of groups) {
     bottom += 36;
-    leftoverTop = bottom - 26;
-    const perRow = Math.max(1, Math.floor((stageWidth - left - pad + 12) / (width + 12)));
-    leftover.forEach((id, index) => {
+    notes.push({ label, x: left, y: bottom - 26, ids: members });
+    members.forEach((id, index) => {
       boxes.set(id, { x: left + (index % perRow) * (width + 12), y: bottom + Math.floor(index / perRow) * (height + gapY), w: width, h: height });
     });
-    bottom += Math.ceil(leftover.length / perRow) * (height + gapY);
+    bottom += Math.ceil(members.length / perRow) * (height + gapY);
   }
-  return { boxes, edges, height: bottom + pad, leftover, leftoverTop, left };
+  return { boxes, edges, height: bottom + pad, leftover, notes, left };
 }
 
 /** The nearest card in a direction, for arrow key navigation */

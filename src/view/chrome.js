@@ -81,7 +81,7 @@ export function renderLayerHead({ model, current, pv, mode, hasShape, canShape, 
   const count = childrenOf(model, current, pv).length;
   head.append(
     el('h1', { class: 'swap' }, el('span', { text: isRoot ? 'Root layer' : title(current) }), !isRoot && el('span', { class: 'key', text: keyBadge(current) }),
-      el('span', { class: 'key', text: `${count} ${count === 1 ? 'key' : 'keys'}` })),
+      el('span', { class: 'key', text: mode === 'merk' && picked ? `${picked.keys.length} of ${count} keys in this state` : `${count} ${count === 1 ? 'key' : 'keys'}` })),
     el('p', { class: 'swap', text: isRoot ? 'The top of Drive\'s GroveDB. Each root tree is a Merk of its own; open one to go a layer down.' : current.description }),
     mode === 'merk' && states.length > 0 && el('div', { class: 'states', role: 'group', 'aria-label': 'State of the layer' },
       ...states.map((state) => el('button', { type: 'button', 'aria-pressed': String(state.index === stateIndex), on: { click: () => onState(state.index) } },

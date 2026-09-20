@@ -36,10 +36,14 @@ test('arrow keys find the nearest card in a direction', () => {
 test('cards outside the shape wrap below it instead of running off the stage', () => {
   const shape = { hex: '73' };
   const ids = ['s', 'a', 'b', 'c', 'd', 'e', 'f', 'g'];
-  const { boxes, leftover, height } = merkLayout(shape, new Map([['73', 's']]), ids, 700);
+  const groupOf = (id) => (id < 'e' ? 'Not in the layer yet' : 'No longer in the layer');
+  const { boxes, leftover, height, notes } = merkLayout(shape, new Map([['73', 's']]), ids, 700, groupOf);
   assert.equal(leftover.length, 7);
   const rows = new Set(leftover.map((id) => boxes.get(id).y));
   assert.ok(rows.size > 1, 'more than one row');
   for (const id of leftover) assert.ok(boxes.get(id).x + boxes.get(id).w <= 700, `${id} stays on the stage`);
   assert.ok(height > Math.max(...leftover.map((id) => boxes.get(id).y)));
+  // A one key tree has no edges; what is missing is still explained, group by group
+  assert.deepEqual(notes.map((note) => [note.label, note.ids]), [['Not in the layer yet', ['a', 'b', 'c', 'd']], ['No longer in the layer', ['e', 'f', 'g']]]);
+  assert.ok(notes[1].y > Math.max(...notes[0].ids.map((id) => boxes.get(id).y)));
 });

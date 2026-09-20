@@ -218,6 +218,9 @@ kbd {
 .card .pennant.owned { color: var(--flag); }
 .card.compact .pennant { display: none; }
 .card.lazy { border-style: dashed; }
+/* not held by the layer in the shape or state on screen */
+.card.absent { opacity: .45; border-style: dashed; background: transparent; --lift: 0 0 0 0 transparent; }
+.card.absent:hover, .card.absent:focus-visible, .card.absent.selected { opacity: .9; }
 /* a template stands for many keys: drawn as a stack of cards */
 .card.template {
   --stack: 5px 5px 0 -1px var(--surface), 5px 5px 0 0 var(--line), 10px 10px 0 -1px var(--surface), 10px 10px 0 0 var(--line-soft);
