@@ -1,5 +1,5 @@
 import { el, icon } from './dom.js';
-import { keyBadge, keyLength, title, holdsLayer, isOpaque, childrenOf } from '../data/model.js';
+import { keyBadge, keyLength, title, holdsLayer, isOpaque, childrenOf, carriedFlags, FLAG_NAMES } from '../data/model.js';
 import { familyClass, familyIcon, kindLabel } from './kinds.js';
 
 const FLAGS = { added: 'NEW', changed: 'CHANGED', removed: 'REMOVED' };
@@ -12,6 +12,7 @@ export function createCard(node, { model, pv, diff, onActivate, onFocus }) {
   const status = diff?.status.get(node.id);
   const trail = diff?.below.get(node.id) || 0;
 
+  const flags = carriedFlags(node);
   const classes = ['card', familyClass(first, model)];
   if (node.key.type === 'dynamic') classes.push('template');
   if (node.presence !== 'always') classes.push('lazy');
@@ -21,6 +22,7 @@ export function createCard(node, { model, pv, diff, onActivate, onFocus }) {
   const kindText = node.kinds.length > 1 ? `${kindLabel(first)}` : kindLabel(first);
   const described = [
     title(node), `key ${keyBadge(node)}`, node.kinds.map(kindLabel).join(' or '),
+    flags.length ? `carries ${flags.map((flag) => FLAG_NAMES[flag].toLowerCase()).join(' or ')}` : '',
     tree ? `${below} below, press Enter to open` : '',
     status ? FLAGS[status].toLowerCase() : '',
   ].filter(Boolean).join(', ');
@@ -39,6 +41,7 @@ export function createCard(node, { model, pv, diff, onActivate, onFocus }) {
     icon(node.recurse ? 'loop' : isOpaque(model, node) ? 'lock' : familyIcon(first, model)),
     el('span', { class: 'kind', text: kindText }),
     node.kinds.length > 1 && el('span', { class: 'more', text: `+${node.kinds.length - 1}` }),
+    flags.length > 0 && el('span', { class: `pennant${flags.includes('EpochOwned') ? ' owned' : ''}`, title: flags.map((flag) => FLAG_NAMES[flag]).join(' or ') }, icon('flag')),
     tree && el('span', { class: 'go' }, el('span', { text: node.recurse ? 'repeats' : String(below) }), icon('enter')),
   ),
   status && el('span', { class: 'flag', text: FLAGS[status] }),

@@ -52,6 +52,7 @@ kbd {
 .i-tree { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 7v4M12 11l-6 5M12 11l6 5'/%3E%3Ccircle cx='12' cy='5' r='2.500' fill='black'/%3E%3Ccircle cx='6' cy='18' r='2.500' fill='black'/%3E%3Ccircle cx='18' cy='18' r='2.500' fill='black'/%3E%3C/svg%3E"); }
 .i-item { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6 3h8l4 4v14H6z'/%3E%3Cpath d='M9 12h6M9 16h6'/%3E%3C/svg%3E"); }
 .i-ref { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1'/%3E%3Cpath d='M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1'/%3E%3C/svg%3E"); }
+.i-flag { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3a1 1 0 0 1 1 1v.500h11.500a1 1 0 0 1 .800 1.600L15.500 10l2.800 3.900a1 1 0 0 1-.800 1.600H6V21a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1z'/%3E%3C/svg%3E"); }
 .i-sum { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.400' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 5H7l6 7-6 7h10'/%3E%3C/svg%3E"); }
 .i-count { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.400' stroke-linecap='round'%3E%3Cpath d='M9 4 7 20M17 4l-2 16M4 9h17M3 15h17'/%3E%3C/svg%3E"); }
 
@@ -201,6 +202,10 @@ kbd {
 .card .go .i { color: inherit; }
 .card:hover .go { color: var(--accent); }
 
+.card .pennant { display: inline-grid; place-items: center; color: var(--text-3); }
+.card .pennant .i { width: 12px; height: 12px; color: inherit; }
+.card .pennant.owned { color: var(--flag); }
+.card.compact .pennant { display: none; }
 .card.lazy { border-style: dashed; }
 /* a template stands for many keys: drawn as a stack of cards */
 .card.template {
@@ -270,6 +275,15 @@ kbd {
 .chip { --k: var(--k-tree); display: inline-flex; align-items: center; gap: 6px; font-size: 12.500px; padding: 3px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--k) 45%, var(--line)); background: color-mix(in srgb, var(--k) 10%, transparent); }
 .chip .i { width: 13px; height: 13px; color: var(--k); }
 .note { color: var(--text-2); font-size: 13px; }
+.chip.flag-chip { --k: var(--flag); }
+.chip.flag-chip.none { --k: var(--text-3); }
+.meaning { margin-top: 4px; }
+.meaning summary { cursor: pointer; color: var(--text-2); font-size: 12.500px; }
+.meaning .note { margin: 6px 0; }
+.meaning .code { font-size: 12px; }
+.legend-flags { margin-top: 12px; display: grid; gap: 6px; }
+.legend-flags .note { margin: 0; }
+.legend-flags .i { width: 12px; height: 12px; color: var(--flag); vertical-align: -1px; }
 .before-after { display: grid; gap: 6px; }
 .before-after .was { color: var(--removed); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--removed) 60%, transparent); }
 .before-after .now { color: var(--added); }

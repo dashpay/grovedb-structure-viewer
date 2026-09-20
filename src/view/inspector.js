@@ -1,5 +1,5 @@
 import { el, icon, clear, copyText } from './dom.js';
-import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf } from '../data/model.js';
+import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, FLAG_NAMES } from '../data/model.js';
 import { blobUrl } from '../data/load.js';
 import { familyClass, familyIcon, kindLabel, family, FAMILY_NAMES } from './kinds.js';
 
@@ -12,7 +12,7 @@ const PRESENCE = {
   always: 'Created with its parent.', lazy: 'Created on first use.', until_deleted: 'Created with its parent and deleted later, while the parent stays.',
 };
 const FIELD_NAMES = {
-  key: 'Key', kinds: 'Element kind', value: 'Value', reference: 'Points to', since: 'Since', until: 'Until', presence: 'Created',
+  key: 'Key', kinds: 'Element kind', flags: 'Element flags', flags_note: 'Who the flags name', value: 'Value', reference: 'Points to', since: 'Since', until: 'Until', presence: 'Created',
   recurse: 'Repeats', opaque: 'Holds', kinds_note: 'What decides the kind', description: 'Description', source: 'Source', book: 'Book chapter',
   'merk shape': 'Merk shape',
 };
@@ -45,10 +45,27 @@ function keyField(node) {
   ));
 }
 
+/** Which element flags sit on the element, who they name, and what flags of that kind mean */
+function flagsField(node, model) {
+  const carried = carriedFlags(node);
+  const shown = node.flags.length > 1 ? node.flags : (carried.length ? carried : node.flags);
+  return field(node.flags.length > 1 ? 'Element flags, one of' : 'Element flags',
+    el('div', { class: 'chips' }, ...shown.map((flag) => el('span', { class: `chip flag-chip${flag === 'None' ? ' none' : ''}` }, flag !== 'None' && icon('flag'), el('span', { text: FLAG_NAMES[flag] || flag })))),
+    node.flags_note && el('div', { class: 'note', text: node.flags_note }),
+    ...shown.map((flag) => {
+      const info = model.flagKinds.get(flag);
+      if (!info || (flag === 'None' && shown.length > 1)) return null;
+      return el('details', { class: 'meaning' }, el('summary', { text: flag === 'None' ? 'What having no flags means' : `What ${(FLAG_NAMES[flag] || flag).toLowerCase()} mean` }),
+        el('p', { class: 'note', text: info.meaning }),
+        flag !== 'None' && el('div', { class: 'code', text: info.layout }));
+    }));
+}
+
 const describeValue = (name, value) => {
   if (value === undefined) return 'none';
   if (name === 'key') return value.type === 'fixed' ? `0x${value.hex} ${value.label}` : `{${value.name}}`;
   if (name === 'kinds') return value.map(kindLabel).join(', ');
+  if (name === 'flags') return value.map((flag) => FLAG_NAMES[flag] || flag).join(', ');
   if (name === 'since' || name === 'until') return `protocol version ${value}`;
   return String(value);
 };
@@ -92,6 +109,7 @@ export function renderInspector(panel, node, ctx) {
     body.append(field(node.kinds.length > 1 ? 'Element kind, one of' : 'Element kind',
       el('div', { class: 'chips' }, ...node.kinds.map((kind) => el('span', { class: `chip ${familyClass(kind, model)}` }, icon(familyIcon(kind, model)), el('span', { text: kindLabel(kind) })))),
       node.kinds_note && el('div', { class: 'note', text: node.kinds_note })));
+    if (node.flags) body.append(flagsField(node, model));
     if (node.value) body.append(field('Value', el('span', { text: node.value })));
     if (node.opaque) body.append(field('Holds', el('span', { text: node.opaque })));
     if (node.reference) body.append(field('Points to', el('button', { class: 'btn', type: 'button', on: { click: () => goTo(node.reference, { flight: true }) } }, icon('ref'), el('span', { text: node.reference }))));
@@ -104,13 +122,19 @@ export function renderInspector(panel, node, ctx) {
     if (links.length > 0) body.append(field('Defined in', el('div', { class: 'actions' }, ...links)));
   } else {
     const shape = model.shapes.root;
-    body.append(field('How to read this', el('span', { class: 'note', text: 'Solid cards are fixed keys. A stack of cards is a template standing for many keys, such as one per identity. A dashed card is created on first use or deleted later. Switch to Merk tree to see the real binary tree of a layer.' })));
+    body.append(field('How to read this', el('span', { class: 'note', text: 'Solid cards are fixed keys. A stack of cards is a template standing for many keys, such as one per identity. A dashed card is created on first use or deleted later. A small flag marks elements that carry storage flags: who paid for the bytes and in which epoch, which is what refunds are computed from. Switch to Merk tree to see the real binary tree of a layer.' })));
     if (shape) body.append(field('Recorded shape', el('span', { class: 'note', text: `From a real GroveDB: ${shape.origin}. A chain that upgraded through earlier versions can differ, since the shape depends on insertion order.` })));
   }
 
   const families = [...new Set(model.doc.element_kinds.map((kind) => family(kind.name, model)))];
   body.append(el('details', { class: 'legend' }, el('summary', { text: 'Legend' }),
     el('div', { class: 'chips' }, ...families.map((name) => el('span', { class: `chip k-${name}` }, el('span', { text: FAMILY_NAMES[name] }))))));
+
+  if (model.flagKinds.size > 0) {
+    body.querySelector('.legend').append(el('div', { class: 'legend-flags' },
+      ...[...model.flagKinds.values()].filter((info) => info.name !== 'Other').map((info) => el('p', { class: 'note' },
+        el('strong', {}, info.name !== 'None' && icon('flag'), el('span', { text: ` ${FLAG_NAMES[info.name]}. ` })), el('span', { text: info.meaning })))));
+  }
 
   clear(panel).append(body);
 }

@@ -10,7 +10,8 @@ export function buildModel(doc) {
   };
   visit(doc.root, null);
   const kinds = new Map(doc.element_kinds.map((kind) => [kind.name, kind]));
-  return { doc, root: doc.root, byId, parentOf, kinds, shapes: doc.layer_shapes, latest: doc.latest_protocol_version };
+  const flagKinds = new Map((doc.flag_kinds || []).map((kind) => [kind.name, kind]));
+  return { doc, root: doc.root, byId, parentOf, kinds, flagKinds, shapes: doc.layer_shapes, latest: doc.latest_protocol_version };
 }
 
 export function existsIn(node, pv) {
@@ -36,6 +37,13 @@ export function holdsLayer(model, node) {
 export function isOpaque(model, node) {
   return node.kinds.length > 0 && node.kinds.every((name) => model.kinds.get(name)?.is_opaque);
 }
+
+/** The kinds of element flags the element can carry, leaving out "none" */
+export function carriedFlags(node) {
+  return (node.flags || []).filter((flag) => flag !== 'None');
+}
+
+export const FLAG_NAMES = { None: 'No flags', Epoch: 'Storage flags', EpochOwned: 'Storage flags with an owner', Other: 'Other flags' };
 
 export function isReference(model, node) {
   return node.kinds.some((name) => model.kinds.get(name)?.is_reference);
@@ -113,7 +121,7 @@ export function search(model, query, pv) {
   for (const node of model.byId.values()) {
     if (node.key.type === 'root' || (pv !== undefined && !existsIn(node, pv))) continue;
     const key = node.key;
-    const haystack = [node.id, title(node), key.constant, key.label, key.name, node.kinds.join(' '), node.description]
+    const haystack = [node.id, title(node), key.constant, key.label, key.name, node.kinds.join(' '), node.description, carriedFlags(node).map((flag) => `flags ${FLAG_NAMES[flag]}`).join(' ')]
       .filter(Boolean).join(' ').toLowerCase();
     const at = haystack.indexOf(needle);
     if (at !== -1) hits.push({ node, rank: (node.id.toLowerCase().includes(needle) ? 0 : 1000) + at + node.id.length / 100 });

@@ -8,6 +8,7 @@ const HEX = /^([0-9a-f]{2})*$/;
 const REPO_PATH = /^[A-Za-z0-9_][A-Za-z0-9_./-]*$/;
 const NAME = /^[A-Za-z0-9_]+$/;
 const PRESENCE = new Set(['always', 'lazy', 'until_deleted']);
+const FLAGS = new Set(['None', 'Epoch', 'EpochOwned', 'Other']);
 const ENCODINGS = new Set([
   'raw', 'ascii', 'utf8', 'u8', 'u16_be', 'u32_be', 'u64_be', 'var_int',
   'identifier32', 'hash20', 'hash32', 'serialized_value', 'composite',
@@ -75,6 +76,11 @@ function node(value, where, depth, state) {
     if (typeof kind !== 'string' || !NAME.test(kind) || kind.length > 80) fail(value.id, 'bad element kind');
   }
   text(value.kinds_note, `${value.id}.kinds_note`, { optional: true });
+  // Files written before element flags were described have none
+  if (value.flags !== undefined) {
+    if (!Array.isArray(value.flags) || value.flags.length === 0 || value.flags.length > 8 || !value.flags.every((flag) => FLAGS.has(flag))) fail(value.id, 'bad element flags');
+  }
+  text(value.flags_note, `${value.id}.flags_note`, { optional: true });
   text(value.value, `${value.id}.value`, { optional: true });
   text(value.description, `${value.id}.description`);
   text(value.opaque, `${value.id}.opaque`, { optional: true });
@@ -113,6 +119,15 @@ export function validateStructure(doc) {
     if (!kind || typeof kind.name !== 'string' || !NAME.test(kind.name) || kind.name.length > 80) fail('element_kinds', 'bad kind');
     for (const flag of ['is_tree', 'is_opaque', 'is_reference']) {
       if (typeof kind[flag] !== 'boolean') fail(`element_kinds.${kind.name}`, `expected ${flag}`);
+    }
+  }
+
+  if (doc.flag_kinds !== undefined) {
+    if (!Array.isArray(doc.flag_kinds) || doc.flag_kinds.length > 16) fail('flag_kinds', 'expected a list');
+    for (const kind of doc.flag_kinds) {
+      if (!kind || !FLAGS.has(kind.name)) fail('flag_kinds', 'bad kind');
+      text(kind.meaning, `flag_kinds.${kind.name}.meaning`);
+      text(kind.layout, `flag_kinds.${kind.name}.layout`);
     }
   }
 

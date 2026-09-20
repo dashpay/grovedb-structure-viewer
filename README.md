@@ -7,6 +7,7 @@ The structure is not written here. It is declared as Rust in [`packages/rs-drive
 ## What it does
 
 - Dive into a tree and the view zooms through its card into the layer below; Backspace or the breadcrumb goes back up. The rail on the left stacks the layers you came through.
+- A small flag marks elements that carry storage flags: who paid for the bytes and in which epoch, which is what refunds are computed from. The details say which kind, who the owner is, what that means and how the flags are laid out in bytes.
 - Fixed keys are solid cards, templates such as `{identity_id}` are a stack of cards, nodes that are created on first use or deleted later are dashed, and the colour says which family the element kind belongs to.
 - **Merk tree** redraws a layer whose keys are all fixed as its real binary tree, recorded from a GroveDB by replaying a proof. Where a root key hangs decides who pays to rewrite it.
 - The **protocol version** scrubber at the bottom removes everything a later version introduced, so you can watch the structure grow.

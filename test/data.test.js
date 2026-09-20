@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateStructure, InvalidStructure, isRepoPath } from '../src/data/validate.js';
 import { diffStructures } from '../src/data/diff.js';
-import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry } from '../src/data/model.js';
+import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags } from '../src/data/model.js';
 import { parseSource, parseRef, rawUrl, blobUrl, BadSource } from '../src/data/load.js';
 
 const snapshot = () => JSON.parse(readFileSync(new URL('../data/snapshot.json', import.meta.url), 'utf8'));
@@ -127,4 +127,40 @@ test('the diff finds what a pull request adds, changes and removes', () => {
 
   const unchanged = diffStructures(snapshot(), snapshot());
   assert.equal(unchanged.changes.length, 0);
+});
+
+test('element flags are optional, validated, searchable and part of the diff', () => {
+  // A file written before flags were described is still valid
+  const old = snapshot();
+  const strip = (node) => { delete node.flags; delete node.flags_note; node.children.forEach(strip); };
+  strip(old.root);
+  delete old.flag_kinds;
+  validateStructure(old);
+  assert.deepEqual(carriedFlags(old.root.children[0]), []);
+
+  const head = structuredClone(old);
+  const mark = (node) => { node.flags = ['None']; node.children.forEach(mark); };
+  mark(head.root);
+  head.flag_kinds = [{ name: 'EpochOwned', meaning: 'Who paid, and when.', layout: 'type byte 2, owner id, base epoch' }];
+  const identity = head.root.children.find((node) => node.id === 'identities').children[0];
+  identity.flags = ['Epoch'];
+  identity.flags_note = 'The epoch the identity was created in.';
+  validateStructure(head);
+
+  const model = buildModel(head);
+  assert.deepEqual(carriedFlags(model.byId.get('identities.identity')), ['Epoch']);
+  assert.equal(model.flagKinds.get('EpochOwned').meaning, 'Who paid, and when.');
+  assert.ok(search(model, 'storage flags').some((node) => node.id === 'identities.identity'));
+
+  const marked = structuredClone(head);
+  const changed = structuredClone(head);
+  changed.root.children.find((node) => node.id === 'identities').children[0].flags = ['EpochOwned'];
+  const { changes } = diffStructures(marked, changed);
+  assert.deepEqual(changes.map((change) => [change.id, change.fields]), [['identities.identity', ['flags']]]);
+
+  for (const bad of [['Sticky'], [], 'Epoch', ['<img>']]) {
+    const doc = structuredClone(head);
+    doc.root.children[0].flags = bad;
+    assert.throws(() => validateStructure(doc), InvalidStructure, JSON.stringify(bad));
+  }
 });

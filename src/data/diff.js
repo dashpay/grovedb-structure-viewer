@@ -1,7 +1,7 @@
 // Compares two structure documents by node identifier.
 
-const STRUCTURAL = ['key', 'kinds', 'value', 'reference', 'since', 'until', 'presence', 'recurse', 'opaque'];
-const EDITORIAL = ['kinds_note', 'description', 'source', 'book'];
+const STRUCTURAL = ['key', 'kinds', 'flags', 'value', 'reference', 'since', 'until', 'presence', 'recurse', 'opaque'];
+const EDITORIAL = ['kinds_note', 'flags_note', 'description', 'source', 'book'];
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 

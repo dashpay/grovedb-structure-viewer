@@ -42,6 +42,7 @@
   --k-item: #c3cde6;
   --k-sumitem: #f3d38a;
   --k-ref: #67d9f5;
+  --flag: #ff9f6b;
 }
 
 :root[data-theme="light"] {
@@ -78,4 +79,5 @@
   --k-item: #55617d;
   --k-sumitem: #8f6a0c;
   --k-ref: #0a7fa3;
+  --flag: #c2521a;
 }
