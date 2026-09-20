@@ -43,6 +43,16 @@ export function carriedFlags(node) {
   return (node.flags || []).filter((flag) => flag !== 'None');
 }
 
+/**
+ * The kinds of element flags a node lists. A file that describes flags leaves
+ * them out of a node whose element carries none; a file written before flags
+ * were described says nothing, and then neither does the viewer.
+ */
+export function flagsOf(model, node) {
+  if (node.flags) return node.flags;
+  return model.flagKinds.size > 0 ? ['None'] : null;
+}
+
 export const FLAG_NAMES = { None: 'No flags', Epoch: 'Storage flags', EpochOwned: 'Storage flags with an owner', Other: 'Other flags' };
 
 export function isReference(model, node) {

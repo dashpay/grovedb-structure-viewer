@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateStructure, InvalidStructure, isRepoPath } from '../src/data/validate.js';
 import { diffStructures } from '../src/data/diff.js';
-import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags } from '../src/data/model.js';
+import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags, flagsOf } from '../src/data/model.js';
 import { parseSource, parseRef, rawUrl, blobUrl, BadSource } from '../src/data/load.js';
 
 const snapshot = () => JSON.parse(readFileSync(new URL('../data/snapshot.json', import.meta.url), 'utf8'));
@@ -147,7 +147,11 @@ test('element flags are optional, validated, searchable and part of the diff', (
   identity.flags_note = 'The epoch the identity was created in.';
   validateStructure(head);
 
+  // Before flags were described the viewer says nothing; after, a node without flags carries none
+  assert.equal(flagsOf(buildModel(old), old.root.children[0]), null);
   const model = buildModel(head);
+  delete model.byId.get('balances').flags;
+  assert.deepEqual(flagsOf(model, model.byId.get('balances')), ['None']);
   assert.deepEqual(carriedFlags(model.byId.get('identities.identity')), ['Epoch']);
   assert.equal(model.flagKinds.get('EpochOwned').meaning, 'Who paid, and when.');
   assert.ok(search(model, 'storage flags').some((node) => node.id === 'identities.identity'));
@@ -157,6 +161,11 @@ test('element flags are optional, validated, searchable and part of the diff', (
   changed.root.children.find((node) => node.id === 'identities').children[0].flags = ['EpochOwned'];
   const { changes } = diffStructures(marked, changed);
   assert.deepEqual(changes.map((change) => [change.id, change.fields]), [['identities.identity', ['flags']]]);
+  // Leaving "None" out is not a change
+  const bare = structuredClone(head);
+  const drop = (node) => { if (JSON.stringify(node.flags) === '["None"]') delete node.flags; node.children.forEach(drop); };
+  drop(bare.root);
+  assert.equal(diffStructures(head, bare).changes.length, 0);
 
   for (const bad of [['Sticky'], [], 'Epoch', ['<img>']]) {
     const doc = structuredClone(head);

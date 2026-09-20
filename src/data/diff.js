@@ -4,6 +4,8 @@ const STRUCTURAL = ['key', 'kinds', 'flags', 'value', 'reference', 'since', 'unt
 const EDITORIAL = ['kinds_note', 'flags_note', 'description', 'source', 'book'];
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// A node without flags and a node listing only "None" say the same thing
+const normal = (field, value) => (field === 'flags' && same(value, ['None']) ? undefined : value);
 
 function index(root) {
   const byId = new Map();
@@ -37,7 +39,7 @@ export function diffStructures(base, head) {
       status.set(id, 'added');
       continue;
     }
-    const fields = [...STRUCTURAL, ...EDITORIAL].filter((field) => !same(old[field], node[field]));
+    const fields = [...STRUCTURAL, ...EDITORIAL].filter((field) => !same(normal(field, old[field]), normal(field, node[field])));
     if (!same(base.layer_shapes[id], head.layer_shapes[id])) fields.push('merk shape');
     if (fields.length > 0) {
       status.set(id, 'changed');

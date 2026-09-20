@@ -1,5 +1,5 @@
 import { el, icon, clear, copyText } from './dom.js';
-import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, FLAG_NAMES } from '../data/model.js';
+import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, flagsOf, FLAG_NAMES } from '../data/model.js';
 import { blobUrl } from '../data/load.js';
 import { familyClass, familyIcon, kindLabel, family, FAMILY_NAMES } from './kinds.js';
 
@@ -47,9 +47,10 @@ function keyField(node) {
 
 /** Which element flags sit on the element, who they name, and what flags of that kind mean */
 function flagsField(node, model) {
+  const listed = flagsOf(model, node);
   const carried = carriedFlags(node);
-  const shown = node.flags.length > 1 ? node.flags : (carried.length ? carried : node.flags);
-  return field(node.flags.length > 1 ? 'Element flags, one of' : 'Element flags',
+  const shown = listed.length > 1 ? listed : (carried.length ? carried : listed);
+  return field(listed.length > 1 ? 'Element flags, one of' : 'Element flags',
     el('div', { class: 'chips' }, ...shown.map((flag) => el('span', { class: `chip flag-chip${flag === 'None' ? ' none' : ''}` }, flag !== 'None' && icon('flag'), el('span', { text: FLAG_NAMES[flag] || flag })))),
     node.flags_note && el('div', { class: 'note', text: node.flags_note }),
     ...shown.map((flag) => {
@@ -109,7 +110,7 @@ export function renderInspector(panel, node, ctx) {
     body.append(field(node.kinds.length > 1 ? 'Element kind, one of' : 'Element kind',
       el('div', { class: 'chips' }, ...node.kinds.map((kind) => el('span', { class: `chip ${familyClass(kind, model)}` }, icon(familyIcon(kind, model)), el('span', { text: kindLabel(kind) })))),
       node.kinds_note && el('div', { class: 'note', text: node.kinds_note })));
-    if (node.flags) body.append(flagsField(node, model));
+    if (flagsOf(model, node)) body.append(flagsField(node, model));
     if (node.value) body.append(field('Value', el('span', { text: node.value })));
     if (node.opaque) body.append(field('Holds', el('span', { text: node.opaque })));
     if (node.reference) body.append(field('Points to', el('button', { class: 'btn', type: 'button', on: { click: () => goTo(node.reference, { flight: true }) } }, icon('ref'), el('span', { text: node.reference }))));
