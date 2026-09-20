@@ -7,7 +7,7 @@ const ID = /^[a-z0-9_]+(\.[a-z0-9_]+)*$/;
 const HEX = /^([0-9a-f]{2})*$/;
 const REPO_PATH = /^[A-Za-z0-9_][A-Za-z0-9_./-]*$/;
 const NAME = /^[A-Za-z0-9_]+$/;
-const PRESENCE = new Set(['always', 'lazy']);
+const PRESENCE = new Set(['always', 'lazy', 'until_deleted']);
 const ENCODINGS = new Set([
   'raw', 'ascii', 'utf8', 'u8', 'u16_be', 'u32_be', 'u64_be', 'var_int',
   'identifier32', 'hash20', 'hash32', 'serialized_value', 'composite',

@@ -14,7 +14,7 @@ export function createCard(node, { model, pv, diff, onActivate, onFocus }) {
 
   const classes = ['card', familyClass(first, model)];
   if (node.key.type === 'dynamic') classes.push('template');
-  if (node.presence === 'lazy') classes.push('lazy');
+  if (node.presence !== 'always') classes.push('lazy');
   if (!tree) classes.push('leaf');
   if (status) classes.push(status);
 

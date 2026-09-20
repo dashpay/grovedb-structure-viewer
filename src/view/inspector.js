@@ -8,6 +8,9 @@ const ENCODINGS = {
   u64_be: 'u64, big endian', var_int: 'variable length integer', identifier32: '32 byte identifier', hash20: '20 byte hash',
   hash32: '32 byte hash', serialized_value: 'document value serialized for ordering', composite: 'several values joined',
 };
+const PRESENCE = {
+  always: 'Created with its parent.', lazy: 'Created on first use.', until_deleted: 'Created with its parent and deleted later, while the parent stays.',
+};
 const FIELD_NAMES = {
   key: 'Key', kinds: 'Element kind', value: 'Value', reference: 'Points to', since: 'Since', until: 'Until', presence: 'Created',
   recurse: 'Repeats', opaque: 'Holds', kinds_note: 'What decides the kind', description: 'Description', source: 'Source', book: 'Book chapter',
@@ -93,7 +96,7 @@ export function renderInspector(panel, node, ctx) {
     if (node.opaque) body.append(field('Holds', el('span', { text: node.opaque })));
     if (node.reference) body.append(field('Points to', el('button', { class: 'btn', type: 'button', on: { click: () => goTo(node.reference, { flight: true }) } }, icon('ref'), el('span', { text: node.reference }))));
     if (node.recurse) body.append(field('Repeats', el('span', { class: 'note', text: `The levels below are those of ${node.recurse}, to any depth.` })));
-    body.append(field('Exists', el('span', { text: `Since protocol version ${node.since}${node.until ? ` until ${node.until}` : ''}. ${node.presence === 'lazy' ? 'Created on first use.' : 'Created with its parent.'}` })));
+    body.append(field('Exists', el('span', { text: `Since protocol version ${node.since}${node.until ? ` until ${node.until}` : ''}. ${PRESENCE[node.presence] || ''}` })));
     const links = [
       sourceUrl && el('a', { class: 'btn', href: sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, el('span', { text: node.source.split('/').slice(-2).join('/') })),
       bookUrl && el('a', { class: 'btn', href: bookUrl, target: '_blank', rel: 'noopener noreferrer' }, el('span', { text: 'Book chapter' })),
@@ -101,7 +104,7 @@ export function renderInspector(panel, node, ctx) {
     if (links.length > 0) body.append(field('Defined in', el('div', { class: 'actions' }, ...links)));
   } else {
     const shape = model.shapes.root;
-    body.append(field('How to read this', el('span', { class: 'note', text: 'Solid cards are fixed keys. A stack of cards is a template standing for many keys, such as one per identity. A dashed card is created on first use. Switch to Merk tree to see the real binary tree of a layer.' })));
+    body.append(field('How to read this', el('span', { class: 'note', text: 'Solid cards are fixed keys. A stack of cards is a template standing for many keys, such as one per identity. A dashed card is created on first use or deleted later. Switch to Merk tree to see the real binary tree of a layer.' })));
     if (shape) body.append(field('Recorded shape', el('span', { class: 'note', text: `From a real GroveDB: ${shape.origin}. A chain that upgraded through earlier versions can differ, since the shape depends on insertion order.` })));
   }
 
