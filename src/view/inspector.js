@@ -1,5 +1,5 @@
 import { el, icon, clear, copyText } from './dom.js';
-import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, flagsOf, shapeOrigin, FLAG_NAMES } from '../data/model.js';
+import { keyBadge, keyLength, title, rustPath, hexToBytes, holdsLayer, childrenOf, carriedFlags, flagsOf, shapeOrigin, layerStates, FLAG_NAMES } from '../data/model.js';
 import { blobUrl } from '../data/load.js';
 import { familyClass, familyIcon, kindLabel, family, FAMILY_NAMES } from './kinds.js';
 
@@ -124,8 +124,19 @@ export function renderInspector(panel, node, ctx) {
   } else {
   }
 
+  const states = layerStates(model, node);
+  if (states.length > 0) {
+    const byId = new Map(node.children.map((child) => [child.id.split('.').pop(), child]));
+    body.append(field('States of the layer below', el('ol', { class: 'state-list', start: 0 }, ...states.map((entry) => el('li', {},
+      el('strong', { text: entry.title }),
+      el('p', { class: 'note', text: entry.description }),
+      el('div', { class: 'chips' }, ...entry.keys.map((segment) => el('span', { class: 'chip flag-chip none', text: byId.get(segment) ? `${keyBadge(byId.get(segment))} ${title(byId.get(segment))}` : segment }))))))));
+  }
   const shape = model.shapes[node.id];
-  if (shape) body.append(field('Merk shape of the layer below', el('span', { class: 'note', text: shapeOrigin(shape).long })));
+  if (shape) {
+    body.append(field('Merk shape of the layer below', el('span', { class: 'note', text: shapeOrigin(shape).long }),
+      states.some((entry) => entry.shape) && el('span', { class: 'note', text: 'Recorded once per state. Open the layer and switch to Merk tree to move between them.' })));
+  }
 
   const families = [...new Set(model.doc.element_kinds.map((kind) => family(kind.name, model)))];
   body.append(el('details', { class: 'legend' }, el('summary', { text: 'Legend' }),

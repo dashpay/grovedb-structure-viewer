@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateStructure, InvalidStructure, isRepoPath } from '../src/data/validate.js';
 import { diffStructures } from '../src/data/diff.js';
-import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags, flagsOf, shapeOrigin } from '../src/data/model.js';
+import { buildModel, childrenOf, keyBadge, rustPath, milestones, search, ancestry, carriedFlags, flagsOf, shapeOrigin, layerStates, defaultStateIndex } from '../src/data/model.js';
 import { parseSource, parseRef, rawUrl, blobUrl, BadSource } from '../src/data/load.js';
 
 const snapshot = () => JSON.parse(readFileSync(new URL('../data/snapshot.json', import.meta.url), 'utf8'));
@@ -180,4 +180,40 @@ test('a shape says where it was recorded', () => {
   assert.match(instance.short, /one instance, from the test fixture contracts_with_documents/);
   assert.match(instance.long, /exists once per key above it/);
   assert.equal(shapeOrigin({ origin: 'something else' }).short, 'something else');
+});
+
+test('a layer that goes through states has a shape per state', () => {
+  const doc = snapshot();
+  const epoch = doc.root.children.find((node) => node.id === 'pools').children.find((node) => node.id === 'pools.epoch');
+  epoch.states = [
+    { name: 'future', title: 'Future', description: 'Created at genesis.', keys: ['storage_fees'] },
+    { name: 'running', title: 'Running', description: 'Started by its first block.', keys: ['storage_fees', 'start_time', 'proposers'] },
+    { name: 'paid', title: 'Paid out', description: 'Its proposers were paid.', keys: ['start_time'] },
+  ];
+  const leaf = (hex) => ({ hex });
+  doc.layer_shapes['pools.epoch'] = {
+    origin: 'fixture current_epoch@14', tree: { hex: '73', left: leaf('6d'), right: leaf('74') },
+    states: [
+      { state: 'future', origin: 'fixture current_epoch@14', tree: leaf('73') },
+      { state: 'running', origin: 'fixture current_epoch@14', tree: { hex: '73', left: leaf('6d'), right: leaf('74') } },
+    ],
+  };
+  validateStructure(doc);
+
+  const model = buildModel(doc);
+  const node = model.byId.get('pools.epoch');
+  const states = layerStates(model, node);
+  assert.deepEqual(states.map((state) => [state.index, state.name, Boolean(state.shape)]), [[0, 'future', true], [1, 'running', true], [2, 'paid', false]]);
+  assert.equal(defaultStateIndex(model, node), 1);
+  assert.deepEqual(layerStates(model, model.byId.get('balances')), []);
+
+  for (const corrupt of [
+    (bad) => { bad.root.children.find((n) => n.id === 'pools').children.find((n) => n.id === 'pools.epoch').states[0].name = '<b>'; },
+    (bad) => { bad.layer_shapes['pools.epoch'].states[0].tree = { hex: 'zz' }; },
+    (bad) => { bad.layer_shapes['pools.epoch'].states = 'all'; },
+  ]) {
+    const bad = structuredClone(doc);
+    corrupt(bad);
+    assert.throws(() => validateStructure(bad), InvalidStructure);
+  }
 });

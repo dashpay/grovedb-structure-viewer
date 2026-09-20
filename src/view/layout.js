@@ -69,14 +69,18 @@ export function merkLayout(shape, idOfKey, ids, stageWidth) {
 
   const leftover = ids.filter((id) => !boxes.has(id));
   let bottom = pad + row * (height + gapY);
+  // Cards the shape does not hold go below it, in rows that wrap to the stage
+  let leftoverTop = 0;
   if (leftover.length > 0) {
     bottom += 36;
+    leftoverTop = bottom - 26;
+    const perRow = Math.max(1, Math.floor((stageWidth - left - pad + 12) / (width + 12)));
     leftover.forEach((id, index) => {
-      boxes.set(id, { x: left + index * (width + 12), y: bottom, w: width, h: height });
+      boxes.set(id, { x: left + (index % perRow) * (width + 12), y: bottom + Math.floor(index / perRow) * (height + gapY), w: width, h: height });
     });
-    bottom += height + gapY;
+    bottom += Math.ceil(leftover.length / perRow) * (height + gapY);
   }
-  return { boxes, edges, height: bottom + pad, leftover, leftoverTop: bottom - height - gapY - 26, left };
+  return { boxes, edges, height: bottom + pad, leftover, leftoverTop, left };
 }
 
 /** The nearest card in a direction, for arrow key navigation */

@@ -32,3 +32,14 @@ test('arrow keys find the nearest card in a direction', () => {
   assert.equal(neighbour(boxes, 'd', 'up'), 'b');
   assert.equal(neighbour(boxes, 'a', 'left'), 'a');
 });
+
+test('cards outside the shape wrap below it instead of running off the stage', () => {
+  const shape = { hex: '73' };
+  const ids = ['s', 'a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  const { boxes, leftover, height } = merkLayout(shape, new Map([['73', 's']]), ids, 700);
+  assert.equal(leftover.length, 7);
+  const rows = new Set(leftover.map((id) => boxes.get(id).y));
+  assert.ok(rows.size > 1, 'more than one row');
+  for (const id of leftover) assert.ok(boxes.get(id).x + boxes.get(id).w <= 700, `${id} stays on the stage`);
+  assert.ok(height > Math.max(...leftover.map((id) => boxes.get(id).y)));
+});

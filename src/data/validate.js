@@ -95,6 +95,17 @@ function node(value, where, depth, state) {
       state.targets.push([value.id, field, value[field]]);
     }
   }
+  // The states the layer below goes through, each with the keys it holds then
+  if (value.states !== undefined) {
+    if (!Array.isArray(value.states) || value.states.length > 16) fail(value.id, 'expected states');
+    for (const state of value.states) {
+      if (!state || typeof state.name !== 'string' || !NAME.test(state.name) || state.name.length > 80) fail(value.id, 'bad state name');
+      text(state.title, `${value.id}.states.${state.name}.title`, { max: 200 });
+      text(state.description, `${value.id}.states.${state.name}.description`);
+      if (!Array.isArray(state.keys) || state.keys.length > LIMITS.children
+        || !state.keys.every((segment) => typeof segment === 'string' && NAME.test(segment) && segment.length <= 120)) fail(value.id, 'bad state keys');
+    }
+  }
   if (!Array.isArray(value.children) || value.children.length > LIMITS.children) fail(value.id, 'expected children');
   value.children.forEach((child, index) => node(child, `${value.id}.children[${index}]`, depth + 1, state));
 }
@@ -145,6 +156,14 @@ export function validateStructure(doc) {
     if (!shape || typeof shape !== 'object') fail(`layer_shapes.${id}`, 'expected a shape');
     text(shape.origin, `layer_shapes.${id}.origin`, { max: 100 });
     shapeNode(shape.tree, `layer_shapes.${id}.tree`, 0, state);
+    if (shape.states !== undefined) {
+      if (!Array.isArray(shape.states) || shape.states.length > 16) fail(`layer_shapes.${id}`, 'expected state shapes');
+      shape.states.forEach((entry, index) => {
+        if (!entry || typeof entry.state !== 'string' || !NAME.test(entry.state) || entry.state.length > 80) fail(`layer_shapes.${id}`, 'bad state');
+        text(entry.origin, `layer_shapes.${id}.states[${index}].origin`, { max: 100 });
+        shapeNode(entry.tree, `layer_shapes.${id}.states[${index}].tree`, 0, state);
+      });
+    }
   }
   return doc;
 }

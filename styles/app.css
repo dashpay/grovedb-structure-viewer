@@ -145,8 +145,18 @@ kbd {
 .layer-head h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .layer-head .key { font: 13px var(--mono); color: var(--text-2); background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; border-radius: 7px; }
 .layer-head p { grid-column: 1; margin: 0; color: var(--text-2); max-width: 78ch; }
+.layer-head .states { grid-column: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.layer-head .states button { display: inline-flex; align-items: baseline; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text-2); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.layer-head .states button:hover { background: var(--surface-hover); color: var(--text); }
+.layer-head .states button[aria-pressed="true"] { border-color: var(--accent); color: var(--text); box-shadow: var(--glow); }
+.layer-head .states .state-number { font: 11px var(--mono); color: var(--text-3); letter-spacing: .04em; text-transform: uppercase; }
+.layer-head .states button[aria-pressed="true"] .state-number { color: var(--accent); }
+.layer-head .state-meaning { color: var(--text-2); font-size: 13.500px; }
+.state-list { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.state-list li::marker { font: 12px var(--mono); color: var(--text-3); }
+.state-list .note { margin: 2px 0 6px; }
 .layer-head .origin { color: var(--text-3); font-size: 12.500px; }
-.layer-head .tools { grid-row: 1 / span 3; grid-column: 2; display: flex; gap: 8px; align-items: center; }
+.layer-head .tools { grid-row: 1 / span 5; grid-column: 2; display: flex; gap: 8px; align-items: center; }
 .layer-head .swap { animation: head-in .4s var(--ease) both; }
 @keyframes head-in { from { opacity: 0; transform: translateY(6px); } }
 

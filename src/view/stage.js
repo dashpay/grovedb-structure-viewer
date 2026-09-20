@@ -1,7 +1,7 @@
 import { el, svg, clear, animate, reducedMotion } from './dom.js';
 import { createCard, place } from './card.js';
 import { gridLayout, merkLayout, neighbour } from './layout.js';
-import { childrenOf } from '../data/model.js';
+import { childrenOf, layerStates } from '../data/model.js';
 
 const DIVE = { duration: 560, easing: 'cubic-bezier(.7, 0, .25, 1)' };
 const ZOOM = 2.7;
@@ -19,13 +19,16 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
   function layoutFor(node, ids, mode) {
     const { model } = getState();
     const width = stage.clientWidth || 800;
-    const shape = mode === 'merk' ? model.shapes[node.id] : null;
-    if (!shape) return gridLayout(ids, width);
+    const recorded = mode === 'merk' ? model.shapes[node.id] : null;
+    if (!recorded) return gridLayout(ids, width);
+    // A layer that goes through states is drawn in the state picked in the layer head
+    const picked = layerStates(model, node)[getState().stateIndexOf(node)];
+    const shape = picked?.shape || recorded;
     const idOfKey = new Map();
     for (const child of childrenOf(model, node)) {
       if (child.key.type === 'fixed' && ids.includes(child.id)) idOfKey.set(child.key.hex, child.id);
     }
-    return merkLayout(shape.tree, idOfKey, ids, width);
+    return { ...merkLayout(shape.tree, idOfKey, ids, width), inState: Boolean(picked?.shape) };
   }
 
   function drawEdges(layer, layout, { draw }) {
@@ -49,7 +52,7 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
     });
     layer.prepend(group);
     if (layout.leftover.length > 0) {
-      const note = el('div', { class: 'layer-note', text: 'Not in the recorded shape: created later, or not in the recorded instance' });
+      const note = el('div', { class: 'layer-note', text: layout.inState ? 'Not in the layer in this state' : 'Not in the recorded shape: created later, or not in the recorded instance' });
       note.style.left = `${layout.left}px`;
       note.style.top = `${layout.leftoverTop}px`;
       layer.append(note);

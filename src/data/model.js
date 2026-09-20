@@ -38,6 +38,26 @@ export function shapeOrigin(shape) {
   return { short: shape.origin, long: `Recorded from a real GroveDB: ${shape.origin}.` };
 }
 
+/**
+ * The states the layer below a node goes through, each with its recorded
+ * shape when there is one. A layer that gains and loses keys over its life,
+ * as an epoch's does, has a different Merk in each state.
+ */
+export function layerStates(model, node) {
+  const shapes = model.shapes[node.id]?.states || [];
+  return (node.states || []).map((state, index) => ({
+    ...state, index, shape: shapes.find((entry) => entry.state === state.name) || null,
+  }));
+}
+
+/** The state shown first: the one holding the most keys, which is the layer's main shape */
+export function defaultStateIndex(model, node) {
+  const states = layerStates(model, node);
+  let best = 0;
+  states.forEach((state, index) => { if (state.keys.length > states[best].keys.length) best = index; });
+  return best;
+}
+
 export function existsIn(node, pv) {
   return node.since <= pv && (node.until === undefined || pv <= node.until);
 }

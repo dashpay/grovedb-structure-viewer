@@ -1,6 +1,6 @@
 import { loadConfig, loadStructure, loadLocal, parseSource, parseRef, BadSource, NoStructure } from './data/load.js';
 import { InvalidStructure } from './data/validate.js';
-import { buildModel, ancestry, holdsLayer, existsIn, title, layerOf } from './data/model.js';
+import { buildModel, ancestry, holdsLayer, existsIn, title, layerOf, defaultStateIndex } from './data/model.js';
 import { diffStructures } from './data/diff.js';
 import { createStage } from './view/stage.js';
 import { renderInspector, renderChanges } from './view/inspector.js';
@@ -16,6 +16,11 @@ const onLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostna
 const state = {
   config: null, model: null, diff: null, source: null, base: null,
   pv: 1, mode: 'grid', current: null, selected: null, touring: false,
+  // Which state each layer that goes through states is drawn in
+  pickedStates: new Map(),
+  stateIndexOf(node) {
+    return this.pickedStates.has(node.id) ? this.pickedStates.get(node.id) : defaultStateIndex(this.model, node);
+  },
 };
 
 let stage;
@@ -79,6 +84,8 @@ function renderChrome() {
     model: state.model, current: state.current, pv: state.pv, mode: canShape ? state.mode : 'grid',
     hasShape: Boolean(state.model.shapes[state.current.id]), canShape,
     onMode: (mode) => { state.mode = mode; renderChrome(); stage.reflow(); },
+    stateIndex: state.stateIndexOf(state.current),
+    onState: (index) => { state.pickedStates.set(state.current.id, index); renderChrome(); stage.reflow(); },
   });
   renderInspector($('panel-details'), state.selected || state.current, context());
   outline.render();
