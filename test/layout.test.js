@@ -19,6 +19,14 @@ test('a single column fills a narrow stage instead of floating in it', () => {
     assert.equal(box.x, GRID.narrowPad, `${stageWidth}: left edge`);
     assert.equal(box.x + box.w, stageWidth - GRID.narrowPad, `${stageWidth}: right edge`);
   }
+  // The number of columns never drops as the stage widens
+  let last = 0;
+  for (let stageWidth = 240; stageWidth <= 1400; stageWidth += 1) {
+    const { boxes } = gridLayout(['a', 'b', 'c', 'd'], stageWidth);
+    const columns = new Set([...boxes.values()].map((box) => box.x)).size;
+    assert.ok(columns >= last, `${stageWidth}: ${columns} columns after ${last}`);
+    last = columns;
+  }
   // Wide enough for one column only, but not so wide the card stretches without end
   const { boxes } = gridLayout(['a', 'b'], 500);
   assert.equal(boxes.get('a').w, GRID.maxWidth);
