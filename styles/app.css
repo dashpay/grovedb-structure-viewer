@@ -115,6 +115,8 @@ kbd {
 
 /* ── workspace ─────────────────────────────────────────────────────────── */
 .workspace { display: grid; grid-template-columns: 148px minmax(0, 1fr) 360px; min-height: 0; }
+/* Placed by column too: a hidden rail must not let the others slide into its slot */
+.rail { grid-column: 1; } .stage-column { grid-column: 2; } .side { grid-column: 3; }
 
 .rail {
   padding: 18px 10px 18px 16px; overflow: hidden; border-right: 1px solid var(--line-soft);
@@ -397,9 +399,11 @@ body.embed .rail { display: none; }
   .source { order: 3; flex-basis: 100%; }
   .crumbs, .timeline { padding-left: 16px; padding-right: 16px; }
   .workspace, body.embed .workspace { grid-template-columns: minmax(0, 1fr); }
+  .stage-column, .side { grid-column: 1; }
   .stage-column { grid-template-rows: auto auto; }
   /* The page scrolls here, so the stage is as tall as the layer it shows */
-  .stage { overflow: hidden; height: var(--layer-height, 320px); min-height: 240px; transition: height .4s var(--ease); }
+  /* A Merk tree can still be wider than a phone: it scrolls sideways */
+  .stage { overflow: auto hidden; height: var(--layer-height, 320px); min-height: 240px; transition: height .4s var(--ease); }
   .layer-head { padding: 14px 16px 10px; grid-template-columns: minmax(0, 1fr); }
   .layer-head .tools { grid-row: auto; grid-column: 1; }
   .side { border-left: 0; border-top: 1px solid var(--line-soft); }

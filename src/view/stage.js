@@ -117,11 +117,13 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
     if (!previous || how === 'none' || reducedMotion()) {
       clear(stage).append(next.element);
       stage.scrollTop = 0;
+      stage.scrollLeft = 0;
       if (previous && !reducedMotion()) stagger(next, 0);
       return;
     }
 
     const scrolled = stage.scrollTop;
+    const scrolledX = stage.scrollLeft;
     previous.element.classList.add('leaving');
     stage.append(next.element);
 
@@ -129,13 +131,14 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
       const box = previous.layout.boxes.get(through);
       const origin = box ? centreOf(box) : { x: stage.clientWidth / 2, y: scrolled + stage.clientHeight / 2 };
       stage.scrollTop = 0;
+      stage.scrollLeft = 0;
       previous.element.style.transformOrigin = `${origin.x}px ${origin.y}px`;
-      next.element.style.transformOrigin = `${origin.x}px ${origin.y - scrolled}px`;
+      next.element.style.transformOrigin = `${origin.x - scrolledX}px ${origin.y - scrolled}px`;
       stagger(next, 170);
       await Promise.all([
         animate(previous.element, [
-          { transform: `translateY(${-scrolled}px) scale(1)`, opacity: 1, filter: 'blur(0px)' },
-          { transform: `translateY(${-scrolled}px) scale(${ZOOM})`, opacity: 0, filter: 'blur(7px)' },
+          { transform: `translate(${-scrolledX}px, ${-scrolled}px) scale(1)`, opacity: 1, filter: 'blur(0px)' },
+          { transform: `translate(${-scrolledX}px, ${-scrolled}px) scale(${ZOOM})`, opacity: 0, filter: 'blur(7px)' },
         ], timing),
         animate(next.element, [
           { transform: 'scale(.32)', opacity: 0 },
@@ -164,8 +167,9 @@ export function createStage(stage, { getState, onActivate, onFocus }) {
       ]);
     } else {
       stage.scrollTop = 0;
+      stage.scrollLeft = 0;
       stagger(next, 60);
-      await animate(previous.element, [{ opacity: 1, transform: `translateY(${-scrolled}px)` }, { opacity: 0, transform: `translateY(${-scrolled + 10}px)` }], { duration: 200, easing: 'ease-in' });
+      await animate(previous.element, [{ opacity: 1, transform: `translate(${-scrolledX}px, ${-scrolled}px)` }, { opacity: 0, transform: `translate(${-scrolledX}px, ${-scrolled + 10}px)` }], { duration: 200, easing: 'ease-in' });
     }
     previous.element.remove();
     next.element.style.transformOrigin = '';

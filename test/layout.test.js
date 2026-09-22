@@ -9,7 +9,28 @@ test('the grid wraps to the stage width and centres its rows', () => {
   assert.ok(wide.boxes.get('e').y > wide.boxes.get('a').y);
   const narrow = gridLayout(ids, 320);
   assert.equal(new Set([...narrow.boxes.values()].map((box) => box.x)).size, 1);
-  assert.equal(narrow.height, GRID.pad * 2 + 5 * GRID.height + 4 * GRID.gap);
+  assert.equal(narrow.height, GRID.narrowPad * 2 + 5 * GRID.height + 4 * GRID.gap);
+});
+
+test('a single column fills a narrow stage instead of floating in it', () => {
+  for (const stageWidth of [262, 320, 440]) {
+    const { boxes } = gridLayout(['a', 'b'], stageWidth);
+    const box = boxes.get('a');
+    assert.equal(box.x, GRID.narrowPad, `${stageWidth}: left edge`);
+    assert.equal(box.x + box.w, stageWidth - GRID.narrowPad, `${stageWidth}: right edge`);
+  }
+  // The number of columns never drops as the stage widens
+  let last = 0;
+  for (let stageWidth = 240; stageWidth <= 1400; stageWidth += 1) {
+    const { boxes } = gridLayout(['a', 'b', 'c', 'd'], stageWidth);
+    const columns = new Set([...boxes.values()].map((box) => box.x)).size;
+    assert.ok(columns >= last, `${stageWidth}: ${columns} columns after ${last}`);
+    last = columns;
+  }
+  // Wide enough for one column only, but not so wide the card stretches without end
+  const { boxes } = gridLayout(['a', 'b'], 500);
+  assert.equal(boxes.get('a').w, GRID.maxWidth);
+  assert.equal(boxes.get('a').x, (500 - GRID.maxWidth) / 2);
 });
 
 test('the merk layout keeps keys ascending downwards and the root leftmost', () => {
