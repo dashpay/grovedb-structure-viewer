@@ -79,7 +79,8 @@ export function renderLayerHead({ model, current, pv, mode, hasShape, canShape, 
   const head = clear($('layer-head'));
   const isRoot = current.key.type === 'root';
   const count = childrenOf(model, current, pv).length;
-  head.append(
+  // Parts that do not apply are `false`; DOM append would print them as text
+  head.append(...[
     el('h1', { class: 'swap' }, el('span', { text: isRoot ? 'Root layer' : title(current) }), !isRoot && el('span', { class: 'key', text: keyBadge(current) }),
       el('span', { class: 'key', text: mode === 'merk' && picked ? `${picked.keys.length} of ${count} keys in this state` : `${count} ${count === 1 ? 'key' : 'keys'}` })),
     el('p', { class: 'swap', text: isRoot ? 'The top of Drive\'s GroveDB. Each root tree is a Merk of its own; open one to go a layer down.' : current.description }),
@@ -92,7 +93,7 @@ export function renderLayerHead({ model, current, pv, mode, hasShape, canShape, 
       hasShape && el('div', { class: 'segmented', role: 'group', 'aria-label': 'How the layer is drawn' },
         el('button', { type: 'button', 'aria-pressed': String(mode === 'grid'), on: { click: () => onMode('grid') } }, el('span', { text: 'Keys' })),
         el('button', { type: 'button', 'aria-pressed': String(mode === 'merk'), disabled: !canShape, title: canShape ? 'The real binary tree of this layer' : 'The shape is recorded for the latest protocol version only', on: { click: () => onMode('merk') } }, icon('tree'), el('span', { text: 'Merk tree' })))),
-  );
+  ].filter(Boolean));
 }
 
 /** The protocol version scrubber. Built once so a drag is never interrupted; `update` moves it. */

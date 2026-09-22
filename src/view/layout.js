@@ -1,13 +1,16 @@
 // Pure layout: where each card of a layer goes. No DOM in here.
 
-export const GRID = { width: 232, height: 104, gap: 16, pad: 28 };
+export const GRID = { width: 232, maxWidth: 420, height: 104, gap: 16, pad: 28, narrowPad: 16, narrow: 520 };
 export const MERK = { width: 176, height: 46, gapX: 56, gapY: 10, pad: 28 };
 
 /** Cards in rows, centred, fixed keys first in key order then templates */
 export function gridLayout(ids, stageWidth) {
-  const { width, height, gap, pad } = GRID;
-  const usable = Math.max(width, stageWidth - pad * 2);
-  const columns = Math.max(1, Math.min(ids.length || 1, Math.floor((usable + gap) / (width + gap))));
+  const { height, gap } = GRID;
+  const pad = stageWidth < GRID.narrow ? GRID.narrowPad : GRID.pad;
+  const usable = stageWidth - pad * 2;
+  const columns = Math.max(1, Math.min(ids.length || 1, Math.floor((usable + gap) / (GRID.width + gap))));
+  // A single column takes the stage's width, so a phone is not mostly margin
+  const width = columns === 1 ? Math.max(160, Math.min(GRID.maxWidth, usable)) : GRID.width;
   const rowWidth = columns * width + (columns - 1) * gap;
   const left = Math.max(pad, (stageWidth - rowWidth) / 2);
   const boxes = new Map();
